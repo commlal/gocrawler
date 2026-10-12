@@ -17,8 +17,8 @@ func extractPageData(html, pageURL string) PageData {
 	links, _ := getURLsFromHTML(html, baseURL)
 	imgURLs, _ := getImagesFromHTML(html, baseURL)
 	pageData := PageData{
-		URL:		pageURL,
-		Heading:	getHeadingFromHTML(html),
+		URL:			pageURL,
+		Heading:		getHeadingFromHTML(html),
 		FirstParagraph: getFirstParagraphFromHTML(html),
 		OutgoingLinks: 	links,
 		ImageURLs:		imgURLs,
