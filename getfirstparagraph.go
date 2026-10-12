@@ -13,6 +13,10 @@ func getFirstParagraphFromHTML(html string) string {
 		return ""
 	}
 	main := doc.Find("main")
+	if main.Text() == "" {
+		paragraph := doc.Find("p")
+		return paragraph.Text()
+	}
 	paragraph := main.Find("p")
 	return paragraph.Text()
 }
