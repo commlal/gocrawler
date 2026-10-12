@@ -17,9 +17,6 @@ func extractPageData(html, pageURL string) PageData {
 	baseURL, _ := url.Parse(pageURL)
 	links, _ := getURLsFromHTML(html, baseURL)
 	imgURLs, _ := getImagesFromHTML(html, baseURL)
-
-
-	fmt.Printf("DEBUG -- First Paragraph: %v\n", getFirstParagraphFromHTML(html))
 	pageData := PageData{
 		URL:		pageURL,
 		Heading:	getHeadingFromHTML(html),
@@ -28,5 +25,4 @@ func extractPageData(html, pageURL string) PageData {
 		ImageURLs:		imgURLs,
 	}
 	return pageData
-
 }
