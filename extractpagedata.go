@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/url"
-	"fmt"
 )
 
 type PageData struct {
