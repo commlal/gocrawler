@@ -8,6 +8,16 @@ import (
 )
 
 func (cfg *config) crawlPage(rawCurrentURL string) {
+	cfg.mu.Lock()
+	pgsCrawled := len(cfg.pages)
+	cfg.mu.Unlock()
+
+	if cfg.maxPages <= pgsCrawled {  // Check if more than maxPages reached
+		fmt.Printf("INFO -- Page limit reached. %v not crawled\n", rawCurrentURL)
+		cfg.wg.Done()
+		return
+	}
+
 	cfg.cc <- struct{}{} // Concurrancy Control
 	defer func() {
 		<-cfg.cc
@@ -16,7 +26,6 @@ func (cfg *config) crawlPage(rawCurrentURL string) {
 
 	currentURL, err := url.Parse(rawCurrentURL)
 	if currentURL.Hostname() != cfg.baseURL.Hostname() { //Scope check
-		fmt.Printf("ERROR -- Out Of Scope: %s\n", rawCurrentURL)
 		return
 	}
 

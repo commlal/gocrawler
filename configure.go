@@ -7,11 +7,12 @@ import (
 )
 
 type config struct {
-	pages	map[string]PageData
-	baseURL	*url.URL
-	mu		*sync.Mutex
-	cc		chan struct{}
-	wg		*sync.WaitGroup
+	pages		map[string]PageData
+	baseURL		*url.URL
+	mu			*sync.Mutex
+	cc			chan struct{}
+	wg			*sync.WaitGroup
+	maxPages	int
 }
 
 func (cfg *config) addPageVisit(normalizedURL string) (shouldVisit bool) {
@@ -32,17 +33,17 @@ func (cfg *config) setPageData(normalizedURL string, data PageData) {
 	cfg.pages[normalizedURL] = data
 }
 
-func configure(rawBaseURL string, maxConcurrency int) (*config, error) {
+func configure(rawBaseURL string, maxConcurrency int, maxPages int) (*config, error) {
 	baseURL, err := url.Parse(rawBaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't parse base URL: %v", err)
 	}
-
 	return &config{
 		pages:		make(map[string]PageData),
 		baseURL:	baseURL,
 		mu:			&sync.Mutex{},
 		cc:			make(chan struct{}, maxConcurrency),
 		wg:			&sync.WaitGroup{},
+		maxPages:	maxPages,
 	}, nil
 }
