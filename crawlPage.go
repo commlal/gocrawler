@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/url"
 	"fmt"
-	"github.com/fatih/color"
+	//"github.com/fatih/color"
 )
 
 func (cfg *config) crawlPage(rawCurrentURL string) {
@@ -40,17 +40,15 @@ func (cfg *config) crawlPage(rawCurrentURL string) {
 		return
 	}
 
-	fmt.Printf(color.GreenString("GOCRAWLER -- Crawling: %s\n", normalCurrentURL))
-	
 	data, err := getHTML("http://"+normalCurrentURL)
 	if err != nil {
 		fmt.Printf("ERROR -- Unable to fetch HTML data: %v\n", err)
 		return
 	}
-
+	
 	pageData := extractPageData(data, normalCurrentURL)
 	cfg.setPageData(normalCurrentURL, pageData)
-
+	fmt.Printf("GOCRAWLER -- pageData: %s\n", pageData)
 	for _, nextURL := range pageData.OutgoingLinks { // New recursive call
 		cfg.wg.Add(1)
 		go cfg.crawlPage(nextURL)

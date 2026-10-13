@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 	"fmt"
-	"github.com/fatih/color"
+	//"github.com/fatih/color"
 	"strconv"
 )
 
@@ -31,15 +31,20 @@ func main () {
 	cfg, err := configure(rawBaseURL, maxConcurrency, maxPages)
 	if err != nil {
 		fmt.Printf("ERROR -- Could not create cfg: %v", err)
-		return
+		os.Exit(1)
 	}
 
-	fmt.Printf(color.GreenString("GOCRAWLER -- Begining crawl of %s\n", rawBaseURL))
+	fmt.Printf("GOCRAWLER -- Begining crawl of %s\n", rawBaseURL)
 
 	cfg.wg.Add(1)
-	fmt.Println("DEBUG -- Adding to wg")
 	go cfg.crawlPage(rawBaseURL)
 	cfg.wg.Wait()
 
-	fmt.Println(color.GreenString("GOCRAWLER -- Crawling Complete"))
+	fmt.Println("GOCRAWLER -- Crawling Complete")
+	fmt.Println("GOCRAWLER -- Writing report to 'report.json'")
+	err = writeJSONReport(cfg.pages, "report.json")
+	if err != nil {
+		fmt.Printf("ERROR -- Could not write JSON to file: %v", err)
+		os.Exit(1)
+	}
 }
