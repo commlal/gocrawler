@@ -13,13 +13,34 @@ type PageData struct {
 }
 
 func extractPageData(html, pageURL string) PageData {
-	baseURL, _ := url.Parse(pageURL)
-	links, _ := getURLsFromHTML(html, baseURL)
+	heading := getHeadingFromHTML(html)
+	firstParagraph := getFirstParagraphFromHTML(html)
+	
+	baseURL, err := url.Parse(pageURL)
+	if err != nil {
+		return PageData{
+			URL:            pageURL,
+			Heading:        heading,
+			FirstParagraph: firstParagraph,
+			OutgoingLinks:  nil,
+			ImageURLs:      nil,
+		}
+	}
+
+	links, err := getURLsFromHTML(html, baseURL)
+	if err != nil {
+		links = nil
+	}
+
 	imgURLs, _ := getImagesFromHTML(html, baseURL)
+	if err != nil {
+		imgURLs = nil
+	}
+
 	pageData := PageData{
 		URL:			pageURL,
-		Heading:		getHeadingFromHTML(html),
-		FirstParagraph: getFirstParagraphFromHTML(html),
+		Heading:		heading,
+		FirstParagraph: firstParagraph,
 		OutgoingLinks: 	links,
 		ImageURLs:		imgURLs,
 	}

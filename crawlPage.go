@@ -2,32 +2,50 @@ package main
 
 import (
 	"log"
-	"strings"
+	"net/url"
+	"fmt"
+	"github.com/fatih/color"
 )
 
-func crawlPage(rawBaseURL, rawCurrentURL string, pages map[string]int) {
-	if !strings.Contains(rawCurrentURL, rawBaseURL) && !strings.HasPrefix(rawCurrentURL, "/") {// Checks if current domain OR relative path
-		log.Printf("ERROR -- Out of bounds: %s\n" ,rawCurrentURL)
-		return 	
+func (cfg *config) crawlPage(rawCurrentURL string) {
+	cfg.cc <- struct{}{} // Concurrancy Control
+	defer func() {
+		<-cfg.cc
+		cfg.wg.Done()
+	}()
+
+	currentURL, err := url.Parse(rawCurrentURL)
+	if currentURL.Hostname() != cfg.baseURL.Hostname() { //Scope check
+		fmt.Printf("ERROR -- Out Of Scope: %s\n", rawCurrentURL)
+		return
 	}
-	normalCurrentURL, err := normalizeURL(rawCurrentURL)
+
+	normalCurrentURL, err := normalizeURL(rawCurrentURL) 
 	if err != nil {
 		log.Printf("ERROR -- Can not normalize URL: %s\n" ,rawCurrentURL)
 		return
 	}
-	_, ok := pages[normalCurrentURL]
-	if !ok { // URL not in pages map
-		pages[normalCurrentURL] = 1
-		html, err := getHTML("http://"+normalCurrentURL)
-		if err != nil {
-			log.Printf("ERROR -- Unable to get data from URL: %v\n", err)
-			return
-		}
-		pageData := extractPageData(html, "http://"+normalCurrentURL)
-		for _, page := range pageData.OutgoingLinks {
-			crawlPage(rawBaseURL, page, pages)
-		}
-	} else {
-		pages[normalCurrentURL] = pages[normalCurrentURL] + 1
-	} 
-}
+
+	visitNeeded := cfg.addPageVisit(normalCurrentURL) // Call to helper method, returns true if not in map
+	if !visitNeeded {
+		return
+	}
+
+	fmt.Printf(color.GreenString("GOCRAWLER -- Crawling: %s\n", normalCurrentURL))
+	
+	data, err := getHTML("http://"+normalCurrentURL)
+	if err != nil {
+		fmt.Printf("ERROR -- Unable to fetch HTML data: %v\n", err)
+		return
+	}
+
+	pageData := extractPageData(data, normalCurrentURL)
+	cfg.setPageData(normalCurrentURL, pageData)
+
+	for _, nextURL := range pageData.OutgoingLinks { // New recursive call
+		cfg.wg.Add(1)
+		go cfg.crawlPage(nextURL)
+	}
+	}
+
+

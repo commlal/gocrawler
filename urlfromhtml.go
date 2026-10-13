@@ -28,7 +28,7 @@ func getURLsFromHTML(htmlBody string, baseURL *url.URL) ([]string, error) {
 			log.Printf("ERROR -- Could not parse href %q: %v\n", href, err)
 			return
 		}
-		final := baseURL.ResolveReference(relativeURL)
+		final := baseURL.ResolveReference(relativeURL)	
 		urls = append(urls, final.String())
     })
 	return urls, nil
